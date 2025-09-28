@@ -1,7 +1,6 @@
-// gateway_custom.js
 import express from "express";
 import http from "http";
-import { WebSocket from } "ws";
+import { WebSocketServer } from "ws";   // fixed import
 import net from "net";
 import morgan from "morgan";
 
@@ -16,7 +15,8 @@ app.get("/", (req, res) => res.send("🚀 gateway_custom running"));
 const server = http.createServer(app);
 
 // --- WebSocket server for /custom (upgrade handler)
-const wss = new WebSocket.Server({ noServer: true });
+const wss = new WebSocketServer({ noServer: true });
+
 
 /**
  * Simple room manager (in-memory)
