@@ -1,7 +1,7 @@
 // gateway_custom.js
 import express from "express";
 import http from "http";
-import WebSocket from "ws";
+import { WebSocket from } "ws";
 import net from "net";
 import morgan from "morgan";
 
