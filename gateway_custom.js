@@ -100,15 +100,23 @@ const tcpServer = net.createServer((s) => {
   console.log("tcp client connected:", s.remoteAddress, s.remotePort);
   s.setEncoding("utf8");
   s.write("HELLO_FROM_GATEWAY\n");
+
   s.on("data", (d) => {
     console.log("tcp recv:", d.toString().slice(0,200));
-    // echo for POC
     s.write(`ECHO: ${d.toString().slice(0,200)}\n`);
   });
-  s.on("end", () => console.log("tcp client disconnected"));
-});
-tcpServer.listen(TCP_PORT, () => console.log(`tcp server listening ${TCP_PORT}`));
 
-server.listen(PORT, () => {
-  console.log(`http/ws listening on ${PORT}, tcp ${TCP_PORT}`);
+  s.on("end", () => console.log("tcp client disconnected"));
+
+  // 🔑 catch socket errors (prevents crashes)
+  s.on("error", (err) => {
+    console.error("tcp socket error:", err.message);
+  });
 });
+
+// 🔑 catch server-level errors too
+tcpServer.on("error", (err) => {
+  console.error("tcp server error:", err.message);
+});
+
+tcpServer.listen(TCP_PORT, () => console.log(`tcp server listening ${TCP_PORT}`));
