@@ -1,11 +1,9 @@
 import express from "express";
 import http from "http";
-import { WebSocketServer } from "ws";   // fixed import for ESM
-import net from "net";
+import { WebSocketServer } from "ws";
 import morgan from "morgan";
 
 const PORT = process.env.PORT || 10000;
-const TCP_PORT = process.env.TCP_PORT || 9000;
 
 const app = express();
 app.use(morgan("dev"));
@@ -41,9 +39,6 @@ function broadcastToRoom(roomId, sender, messageObj) {
 }
 
 wss.on("connection", (ws, req) => {
-  ws.isAlive = true;
-  ws.on("pong", () => (ws.isAlive = true));
-
   ws.meta = { room: null, id: null };
 
   ws.on("message", (m) => {
@@ -78,18 +73,13 @@ wss.on("connection", (ws, req) => {
       return;
     }
 
-    if (type === "move" || type === "shoot" || type === "chat") {
+    if (["move", "shoot", "chat"].includes(type)) {
       broadcastToRoom(room || ws.meta.room, ws, {
         type,
         room: room || ws.meta.room,
         id: id || ws.meta.id,
         payload,
       });
-      return;
-    }
-
-    if (type === "ping") {
-      ws.send(JSON.stringify({ type: "pong" }));
     }
   });
 
@@ -114,32 +104,6 @@ server.on("upgrade", (req, socket, head) => {
   }
 });
 
-// --- Minimal TCP server (POC) on port 9000
-const tcpServer = net.createServer((s) => {
-  console.log("tcp client connected:", s.remoteAddress, s.remotePort);
-  s.setEncoding("utf8");
-  s.write("HELLO_FROM_GATEWAY\n");
-
-  s.on("data", (d) => {
-    console.log("tcp recv:", d.toString().slice(0, 200));
-    s.write(`ECHO: ${d.toString().slice(0, 200)}\n`);
-  });
-
-  s.on("end", () => console.log("tcp client disconnected"));
-
-  // ✅ catch socket errors (prevents crash on ECONNRESET)
-  s.on("error", (err) => {
-    console.error("tcp socket error:", err.message);
-  });
-});
-
-// ✅ catch server-level errors too
-tcpServer.on("error", (err) => {
-  console.error("tcp server error:", err.message);
-});
-
-tcpServer.listen(TCP_PORT, () => console.log(`tcp server listening ${TCP_PORT}`));
-
 server.listen(PORT, () => {
-  console.log(`http/ws listening on ${PORT}, tcp ${TCP_PORT}`);
+  console.log(`http/ws listening on ${PORT}`);
 });
