@@ -1,0 +1,14 @@
+{
+  "name": "gateway_custom",
+  "version": "1.0.0",
+  "main": "gateway_custom.js",
+  "type": "module",
+  "scripts": {
+    "start": "node gateway_custom.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0",
+    "morgan": "^1.10.0"
+  }
+}
